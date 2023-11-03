@@ -51,3 +51,45 @@ class TestListCreateTodos(TodosAPITestCase):
         res = self.client.get(reverse('todos'))
         self.assertEqual(len(res.data), 1)
 
+
+class TestTodoDetailsAPIView(TodosAPITestCase):        
+
+    def test_retrieves_a_todo(self):
+        self.authenticate()
+        response = self.create_todo()
+
+        res = self.client.get(reverse('todo-detail', kwargs={'id':response.data['id']}))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        todo = Todo.objects.get(id=response.data['id'])
+        self.assertEqual(todo.title, res.data['title'])
+
+
+    def test_updates_one_todo(self):
+        self.authenticate()
+        response = self.create_todo()
+
+        res = self.client.patch(reverse('todo-detail', kwargs={'id':response.data['id']}), {
+            'title':'new one',
+            'is_complete': True
+        })
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        updated_todo = Todo.objects.get(id=response.data['id'])
+        self.assertEqual(updated_todo.title, 'new one')
+        self.assertTrue(updated_todo.is_complete)
+
+    
+    def test_deletes_one_todo(self):
+        self.authenticate()
+        response = self.create_todo()
+        previous_todo_count = Todo.objects.all().count()
+
+        self.assertGreater(previous_todo_count, 0)
+        self.assertEqual(previous_todo_count, 1)
+
+        res = self.client.delete(reverse('todo-detail', kwargs={'id':response.data['id']}))
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Todo.objects.all().count(), 0)
+
