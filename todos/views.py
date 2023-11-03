@@ -29,9 +29,9 @@ def create_and_list_todos(request):
 # reading, updating and deleting todos
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
-def todo_details(request, pk):
+def todo_details(request, id):
     try:
-        todo = Todo.objects.filter(owner=request.user).get(id=pk)
+        todo = Todo.objects.filter(owner=request.user).get(id=id)
     except Todo.DoesNotExist:
         return response.Response({'message':'Object does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
